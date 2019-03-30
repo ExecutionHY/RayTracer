@@ -2,3 +2,5 @@ scenes/*
 results/*
 backup/*
 *.ppm
+.DS_Store
+.vscode/*
