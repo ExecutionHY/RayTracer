@@ -14,6 +14,8 @@
 
 struct hit_record;
 
+#include <string>
+
 #include "ray.h"
 #include "hitable.h"
 #include "texture.h"
@@ -61,6 +63,25 @@ class material  {
         virtual float scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const {
               return false;}
         virtual vec3 emitted(const ray& r_in, const hit_record& rec, float u, float v, const vec3& p) const { return vec3(0,0,0); }
+
+        mutable char ch;
+};
+
+class MyMtl {
+    public:
+        std::string name;
+        int illum;
+        //diffuse, self luminous, specular, transparent
+        vec3 kd, ka, ks, tf;
+        // exponent
+        int ns;
+        // optical density
+        float ni;
+
+        bool self_luminous = false;
+        bool is_specular = false;
+        bool is_transparent = false;
+        MyMtl() {}
 };
 
 class dielectric : public material {
@@ -121,7 +142,6 @@ class metal : public material {
 };
 
 
-
 class lambertian : public material {
     public:
         lambertian(texture *a) : albedo(a) {}
@@ -145,8 +165,16 @@ class diffuse_light : public material  {
     public:
         diffuse_light(texture *a) : emit(a) {}
         virtual vec3 emitted(const ray& r_in, const hit_record& rec, float u, float v, const vec3& p) const {
-            if (dot(rec.normal, r_in.direction()) < 0.0)
+            // rec.normal.print("@");
+            // r_in.direction().print("#");
+            // std::cout << "\n";
+                //std::cout << "emit: " << emit->value(u, v, p) << "\n";
+
                 return emit->value(u, v, p);
+
+            if (dot(rec.normal, r_in.direction()) < 0.0) {
+                //std::cout << "emit!";
+                return emit->value(u, v, p);}
             else
                 return vec3(0,0,0);
         }

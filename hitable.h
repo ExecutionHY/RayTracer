@@ -16,6 +16,7 @@
 #include <float.h>
 
 class material;
+class MyMtl;
 
 void get_sphere_uv(const vec3& p, float& u, float& v) {
     float phi = atan2(p.z(), p.x());
@@ -33,6 +34,7 @@ struct hit_record
     vec3 p;
     vec3 normal;
     material *mat_ptr;
+    MyMtl *mm_ptr;
 };
 
 class hitable  {

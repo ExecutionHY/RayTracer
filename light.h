@@ -1,11 +1,12 @@
 // author: ExecutionHY
 
 
-#ifndef SCENEH
-#define SCENEH
+#ifndef LIGHTH
+#define LIGHTH
 
 #include <vector>
-#include "group.h"
+
+#define MAX_TRIANGLE_NUM 1000
 
 class Scene: public hitable  {
     public:

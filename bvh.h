@@ -13,11 +13,13 @@
 #define BVHH
 
 #include "hitable.h"
+#include <vector>
 
 class bvh_node : public hitable  {
     public:
         bvh_node() {}
         bvh_node(hitable **l, int n, float time0, float time1);
+        bvh_node(std::vector<hitable *> list, float time0, float time1);
         virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
         virtual bool bounding_box(float t0, float t1, aabb& box) const;
         hitable *left;
@@ -93,6 +95,21 @@ int box_z_compare (const void * a, const void * b)
         return -1;
     else
         return 1;
+}
+
+bvh_node::bvh_node(std::vector<hitable*> list, float time0, float time1) {
+    std::vector<hitable*> list1(list.begin(), list.begin()+list.size()/2);
+    std::vector<hitable*> list2(list.begin()+list.size()/2+1, list.end());
+    if (list1.size() > 1) left = new bvh_node(list1, time0, time1);
+    else left = list1[0];
+    if (list2.size() > 1) right = new bvh_node(list2, time0, time1);
+    else right = list2[0];
+
+    aabb box1, box2;
+    left->bounding_box(time0, time1, box1);
+    right->bounding_box(time0, time1, box2);
+
+    box = surrounding_box(box1, box2);
 }
 
 
