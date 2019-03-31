@@ -49,10 +49,14 @@ bool MTLloader::loadMTL(const string path) const {
                     fin >> mtl.ka.e[0] >> mtl.ka.e[1] >> mtl.ka.e[2];
                     if (mtl.ka.length() > 0) mtl.self_luminous = true;
                 }
-                else if (type == "Ks") fin >> mtl.ks.e[0] >> mtl.ks.e[1] >> mtl.ks.e[2];
+                else if (type == "Ks") {
+                    fin >> mtl.ks.e[0] >> mtl.ks.e[1] >> mtl.ks.e[2];
+                    mtl.is_specular = true;
+                }
                 else if (type == "Tf") {
                     fin >> mtl.tf.e[0] >> mtl.tf.e[1] >> mtl.tf.e[2];
-                    mtl.is_transparent = true;
+                    if (mtl.tf.x() < 1-kEpsilon || mtl.tf.y() < 1-kEpsilon || mtl.tf.z() < 1-kEpsilon)
+                        mtl.is_transparent = true;
                 }
                 else if (type == "Ns") {
                     float tmp;
@@ -61,7 +65,6 @@ bool MTLloader::loadMTL(const string path) const {
                 }
                 else if (type == "Ni") {
                     fin >> mtl.ni;
-                    mtl.is_transparent = true;
                 }
                 else if (type == "newmtl") break;
             } while (fin.peek() != EOF);
@@ -116,7 +119,7 @@ bool OBJloader::gen_world(const string path, const string name, Scene & scene) c
 
     //scene = new Scene();
     Group *currGroup = nullptr;
-    material *currMat = nullptr;
+    MyMtl *currMat = nullptr;
     vector<vec3> verticles;
     vector<vec3> normals;
     bool smooth;
@@ -130,7 +133,7 @@ bool OBJloader::gen_world(const string path, const string name, Scene & scene) c
         else if (type == "mtllib") {
             string name;
             fin >> name;
-            mtlLoader.loadMTL(name);
+            mtlLoader.loadMTL(path+name);
         }
         else if (type == "g") {
             currGroup = new Group();
@@ -151,7 +154,7 @@ bool OBJloader::gen_world(const string path, const string name, Scene & scene) c
                 cout << "mtl not found: " << matname << endl;
                 break;
             }
-            cout << "add mat : " << currMat->ch << endl;
+            cout << "add mat : " << currMat->name << endl;
         }
         else if (type == "s") {
             string mode;
@@ -198,7 +201,7 @@ bool OBJloader::gen_world(const string path, const string name, Scene & scene) c
                 vec3 v2 = verticles[face_v[i+2]];
                 vec3 vn2 = normals[face_vn[i+2]];
 
-                currGroup->addTriangle(v0, v1, v2, (vn0+vn1+vn2), currMat);
+                currGroup->addTriangle(v0, v1, v2, vn0, vn1, vn2, currMat);
                 // aabb bbx;
                 // currGroup->bounding_box(kEpsilon, MAXFLOAT, bbx);
                 

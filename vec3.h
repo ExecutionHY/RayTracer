@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+static const float kEpsilon = 1e-6;
+
 class vec3  {
 
 
@@ -44,6 +46,7 @@ public:
     inline float length() const { return sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]); }
     inline float squared_length() const { return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; }
     inline void make_unit_vector();
+    inline void clamp();
 
     inline void print(char *str) const { std::cout << str << "(" << e[0] << ", " << e[1] << ", " << e[2] << ") "; }
 
@@ -152,6 +155,13 @@ inline vec3& vec3::operator/=(const float t) {
 
 inline vec3 unit_vector(vec3 v) {
     return v / v.length();
+}
+
+
+inline void vec3::clamp() {
+    if (e[0] > 1) e[0] = 1;
+    if (e[1] > 1) e[1] = 1;
+    if (e[2] > 1) e[2] = 1;
 }
 
 #endif

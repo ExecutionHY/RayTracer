@@ -4,79 +4,75 @@
 #ifndef LIGHTH
 #define LIGHTH
 
-#include <vector>
+#include <random>
+#include "vec3.h"
 
 #define MAX_TRIANGLE_NUM 1000
 
-class Scene: public hitable  {
-    public:
-        Scene() {}
-        void addGroup(Group *g) const;
+class Light {
+public:
+    vec3 le;
+    float intensity;
+    vec3 center;
 
-        virtual bool hit(const ray& r, float t0, float t1, hit_record& rec) const;
-        virtual bool bounding_box(float t0, float t1, aabb& box) const;
-        virtual float pdf_value(const vec3& o, const vec3& v) const;
-        virtual vec3 random(const vec3& o) const;
+    Light(const vec3 pos, const vec3 _le=vec3(1,1,1)) : center(pos), le(_le) {}
+    virtual void illuminate(const vec3 &p, vec3 &lightDir, vec3 &le, float &dist) {}
 
-        mutable std::vector<Group*> group_list; 
-
-        mutable aabb bbox;
 };
 
-void Scene::addGroup(Group *g) const {
-    group_list.push_back(g);
-}
+class SphereLight : public Light {
+public:
+    float radius;
 
-float Scene::pdf_value(const vec3& o, const vec3& v) const {
-    int gcnt = group_list.size();
-    float sum = 0;
-    for (int i = 0; i < gcnt; i++)
-        sum += group_list[i]->pdf_value(o, v);
-    return sum / gcnt;
-}
-
-vec3 Scene::random(const vec3& o) const {
-        int index = int(drand48() * group_list.size());
-        return group_list[ index ]->random(o);
-}
-
-
-bool Scene::bounding_box(float t0, float t1, aabb& box) const {
-    int gcnt = group_list.size();
-    if (gcnt < 1) return false;
-    aabb temp_box;
-    bool first_true = group_list[0]->bounding_box(t0, t1, temp_box);
-    if (!first_true)
-        return false;
-    else
-        box = temp_box;
-    for (int i = 1; i < gcnt; i++) {
-        if(group_list[0]->bounding_box(t0, t1, temp_box)) {
-            box = surrounding_box(box, temp_box);
-        }
-        else
-            return false;
+    SphereLight(const vec3 pos, const vec3 _le=vec3(1,1,1), 
+        const float r=1.0f) : Light(pos, _le), radius(r) {}
+    void illuminate(const vec3 &p, vec3 &lightDir, vec3 &le, float &dist) {
+        lightDir = (p - center);
+        float r2 = lightDir.length();
+        dist = r2 - radius;
+        lightDir = unit_vector(lightDir);
+        le = this->le;
     }
-    return true;
-}
 
-bool Scene::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
-    //std::cout << "? "<< std::endl;
+};
 
-    hit_record temp_rec;
-    bool hit_anything = false;
-    double closest_so_far = t_max;
-    int gcnt = group_list.size();
-    //std::cout << "?? " << gcnt << std::endl;
-    for (int i = 0; i < gcnt; i++) {
-        if (group_list[i]->hit(r, t_min, closest_so_far, temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.t;
-            rec = temp_rec;
+class QuadLight : public Light {
+public:
+    vec3 v1, v2;
+    float length, width, height;
 
-        }
+    QuadLight(const vec3& centerPos, const vec3 c, vec3 _v1, vec3 _v2) : Light(centerPos, c)  {
+        v1 = _v1;
+        v2 = _v2;
+        length = v2.x() - v1.x();
+        height = v2.y() - v1.y();
+        width = v2.z() - v1.z();
     }
-    return hit_anything;
-}
+
+    vec3 randomPt() {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        std::uniform_real_distribution<float> distribution(0.0, 1.0);
+
+		float r1 = distribution(gen);
+		float r2 = distribution(gen);
+		float r3 = distribution(gen);
+		return vec3(v1.x() + r1*length, 
+					v1.y() + r2*height, 
+					v1.z() + r3*width);
+    }
+
+    void illuminate(const vec3 &p, vec3 &lightDir, vec3 &le, float &dist) {
+        vec3 lightPos = randomPt();
+        lightDir = (p - lightPos);
+        dist = lightDir.length();
+        lightDir = unit_vector(lightDir);
+        le = this->le;
+        //std::cout << "### " << le << std::endl;
+    }
+
+};
+
 
 #endif

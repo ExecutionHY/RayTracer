@@ -7,12 +7,12 @@
 #include "hitable.h"
 #include "vec3.h"
 
-static const float kEpsilon = 1e-6;
 
 class Triangle: public hitable  {
     public:
         Triangle() {}
-        Triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn, material *mat) : v0(_v0), v1(_v1), v2(_v2), vn(_vn), mp(mat) {
+        Triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn0, vec3 _vn1, vec3 _vn2, material *mat) : 
+            v0(_v0), v1(_v1), v2(_v2), vn0(_vn0), vn1(_vn1), vn2(_vn2), mp(mat) {
             vec3 small( fmin(fmin(v0.x(), v1.x()), v2.x()),
                         fmin(fmin(v0.y(), v1.y()), v2.y()),
                         fmin(fmin(v0.z(), v1.z()), v2.z()) );
@@ -24,7 +24,8 @@ class Triangle: public hitable  {
             if (big.z() - small.z() < kEpsilon) big.e[2] += kEpsilon;
             bbox = aabb(small, big);
         };
-        Triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn, MyMtl *mat) : v0(_v0), v1(_v1), v2(_v2), vn(_vn), mm(mat) {
+        Triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn0, vec3 _vn1, vec3 _vn2, MyMtl *mat) : 
+            v0(_v0), v1(_v1), v2(_v2), vn0(_vn0), vn1(_vn1), vn2(_vn2), mm(mat) {
             vec3 small( fmin(fmin(v0.x(), v1.x()), v2.x()),
                         fmin(fmin(v0.y(), v1.y()), v2.y()),
                         fmin(fmin(v0.z(), v1.z()), v2.z()) );
@@ -40,7 +41,7 @@ class Triangle: public hitable  {
         virtual bool bounding_box(float t0, float t1, aabb& box) const;
         material  *mp;
         MyMtl *mm;
-        vec3 v0, v1, v2, vn;
+        vec3 v0, v1, v2, vn0, vn1, vn2;
         aabb bbox;
         //float x0, x1, y0, y1, k;
 };
@@ -99,7 +100,7 @@ bool Triangle::hit(const ray& r, float t0, float t1, hit_record& rec) const {
     //float d = dot(N, v0); 
     //float t = (dot(N, r.origin()) + d) / NdotRayDirection; 
 
-    vec3 N = unit_vector(vn);
+    vec3 N = unit_vector(vn0*(1-u-v) + vn1*u + vn2*v);
     vec3 ov0 = v0 - r.origin();
     float d = dot(N, ov0);
     float t = d / dot(N, r.direction());

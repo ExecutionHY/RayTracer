@@ -12,8 +12,8 @@
 class Group: public hitable  {
     public:
         Group() {}
-        void addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn, material *m) const;
-        void addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn, MyMtl *m) const;
+        void addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn0, vec3 vn1, vec3 vn2, material *m) const;
+        void addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn0, vec3 vn1, vec3 vn2, MyMtl *m) const;
         bool buildBVH(float t0, float t1) const {
             hitable **list = new hitable*[triangle_list.size()];
             for (int i = 0; i < triangle_list.size(); i++) {
@@ -54,22 +54,22 @@ class Group: public hitable  {
         mutable aabb bbox;
 };
 
-void Group::addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn, material *m) const {
+void Group::addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn0, vec3 vn1, vec3 vn2, material *m) const {
     
     //hitable* tri = new Triangle(v0, v1, v2, vn, m);
     //aabb bbox1;
     //tri->bounding_box(0, 1, bbox1);
     //bbox = surrounding_box(bbox, bbox1);
-    triangle_list.push_back(new Triangle(v0, v1, v2, vn, m));
+    triangle_list.push_back(new Triangle(v0, v1, v2, vn0, vn1, vn2, m));
     //triangle_list[triangle_list.size()-1]->v1.print("  ## ");
     //std::cout << "@@@ " << m->ch << " " << triangle_list[0]->mp->ch << std::endl;
 
     //list_ptr = new hitable_list(list,6);
 }
 
-void Group::addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn, MyMtl *m) const {
+void Group::addTriangle(vec3 v0, vec3 v1, vec3 v2, vec3 vn0, vec3 vn1, vec3 vn2, MyMtl *m) const {
     
-    triangle_list.push_back(new Triangle(v0, v1, v2, vn, m));
+    triangle_list.push_back(new Triangle(v0, v1, v2, vn0, vn1, vn2, m));
 }
 
 

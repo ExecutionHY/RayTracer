@@ -82,6 +82,12 @@ class MyMtl {
         bool is_specular = false;
         bool is_transparent = false;
         MyMtl() {}
+        float scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const {
+            float cosine = dot(rec.normal, unit_vector(scattered.direction()));
+            if (cosine < 0)
+                return 0;
+            return cosine / M_PI;
+        }
 };
 
 class dielectric : public material {
